@@ -183,10 +183,10 @@ def term_years(text: str) -> set:
 # Only citizenship requirements block a posting. "No sponsorship" language is
 # deliberately NOT filtered: those roles still get through.
 CITIZEN_ONLY_RE = re.compile(
-    r"u\.?s\.?\s+citizen(?:ship)?\s+(?:is\s+|are\s+)?(?:required|only|needed)|"
-    r"must\s+be\s+(?:an?\s+)?(?:u\.?s\.?|united states)\s+(?:citizen|person)|"
-    r"(?:u\.?s\.?|united states)\s+citizens?\s+only|"
-    r"security clearance|itar|export[- ]control(?:led)?",
+    r"\bu\.?s\.?\s+citizen(?:ship)?\s+(?:is\s+|are\s+)?(?:required|only|needed)|"
+    r"\bmust\s+be\s+(?:an?\s+)?(?:u\.?s\.?|united states)\s+(?:citizen|person)|"
+    r"\b(?:u\.?s\.?|united states)\s+citizens?\s+only|"
+    r"\bsecurity clearance\b|\bitar\b|\bexport[- ]control(?:led)?\b",
     re.I,
 )
 CITIZEN_ONLY_MARKERS = ("🇺🇸",)  # Simplify's "requires US citizenship" flag
@@ -200,3 +200,29 @@ def sponsorship_blocked(text: str) -> bool:
     if any(mark in text for mark in CITIZEN_ONLY_MARKERS):
         return True
     return bool(CITIZEN_ONLY_RE.search(text))
+
+
+# ---- freshness and deadlines ----------------------------------------------
+
+_MONTH = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}"
+DEADLINE_RE = re.compile(
+    r"(?:apply|applications?|submit\w*)\W+(?:\w+\W+){0,6}?(?:by|before|until|through|close[sd]?(?:\s+on)?)\W+(" + _MONTH + r")"
+    r"|(?:deadline|closing date|closes|close date)\W+(?:is\W+|on\W+|by\W+)?(" + _MONTH + r")",
+    re.I,
+)
+ROLLING_RE = re.compile(
+    r"rolling (?:basis|admission|review|application)|reviewed on a rolling|"
+    r"until (?:the )?(?:position|role) is filled|first[- ]come",
+    re.I,
+)
+
+
+def deadline_hint(text: str) -> str:
+    """"closes Oct 15", "rolling", or "" when the posting says nothing."""
+    if not text:
+        return ""
+    m = DEADLINE_RE.search(text)
+    if m:
+        d = (m.group(1) or m.group(2)).strip().rstrip(".")
+        return "closes " + " ".join(w.capitalize() for w in d.split())
+    return "rolling" if ROLLING_RE.search(text) else ""
