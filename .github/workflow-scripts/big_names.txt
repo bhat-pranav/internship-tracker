@@ -1,0 +1,233 @@
+# "Big name" companies. Summer 2027 only alerts on these; Winter 2027 alerts on
+# everything but ranks these first (marked with a star in the email).
+#
+# One company per line, matched case-insensitively against the normalized
+# company name. A plain entry also matches longer names that start with it
+# ("google" matches "Google DeepMind", "amazon" matches "Amazon Web Services").
+# End a line with "=" to require an exact match (for short or ambiguous names).
+# Lines starting with # are comments. Edit freely.
+
+# --- Big tech ---
+google
+alphabet
+microsoft
+amazon
+aws
+apple=
+meta=
+meta platforms
+netflix
+nvidia
+tesla
+openai
+anthropic
+salesforce
+adobe
+oracle
+ibm
+intel
+amd=
+qualcomm
+cisco
+broadcom
+dell
+hp=
+samsung
+sony
+autodesk
+intuit
+servicenow
+workday
+vmware
+linkedin
+github
+uber
+lyft
+airbnb
+doordash
+instacart
+pinterest
+snap=
+snapchat
+reddit
+discord
+spotify
+tiktok
+bytedance
+zoom=
+dropbox
+slack
+
+# --- AI / data / infra ---
+databricks
+snowflake
+palantir
+scale ai
+cohere
+mistral
+perplexity
+xai=
+hugging face
+deepmind
+cerebras
+sambanova
+cloudflare
+datadog
+mongodb
+confluent
+hashicorp
+twilio
+okta
+crowdstrike
+palo alto networks
+fortinet
+zscaler
+elastic=
+gitlab
+atlassian
+canva
+figma
+notion
+airtable
+asana=
+grammarly
+duolingo
+roblox
+unity=
+electronic arts
+ea=
+epic games
+riot games
+activision
+blizzard
+
+# --- Fintech / payments ---
+stripe
+block=
+square=
+paypal
+coinbase
+robinhood
+plaid
+ramp=
+brex
+affirm
+chime=
+sofi=
+klarna
+toast=
+adyen
+wise=
+wealthsimple
+shopify
+faire
+visa=
+mastercard
+american express
+capital one
+intuit
+
+# --- Finance / quant ---
+bloomberg
+two sigma
+jane street
+citadel
+d e shaw
+de shaw
+hudson river trading
+jump trading
+imc trading
+optiver
+susquehanna
+virtu
+akuna
+drw=
+point72
+millennium
+goldman sachs
+jpmorgan
+j p morgan
+morgan stanley
+blackrock
+wells fargo
+rbc
+royal bank of canada
+td=
+td bank
+bmo
+cibc
+scotiabank
+fidelity
+vanguard
+state street
+
+# --- Hardware / autonomy / aerospace / auto ---
+spacex
+blue origin
+waymo
+zoox
+rivian
+lucid=
+general motors
+gm=
+ford=
+toyota
+honda
+nissan
+bmw
+apptronik
+anduril
+boeing
+micron
+analog devices
+texas instruments
+applied materials
+lam research
+kla=
+arm=
+marvell
+synopsys
+cadence
+mathworks
+siemens
+bosch
+honeywell
+garmin
+sonos
+gopro
+peloton
+nokia
+ericsson
+
+# --- Consumer / commerce / other notable ---
+walmart
+target=
+home depot
+costco
+disney
+nike
+ebay
+etsy
+wayfair
+expedia
+booking
+zillow
+yelp
+hubspot
+zendesk
+gusto
+rippling
+deel=
+squarespace
+wix=
+godaddy
+procore
+veeva
+epic systems
+optum
+unitedhealth
+telus
+rogers
+bell canada
+hootsuite
+ubisoft

@@ -1,0 +1,80 @@
+name: Internship Watcher
+
+# Primary trigger is workflow_dispatch, fired by an external pinger (cron-job.org).
+# Dispatched runs skip GitHub's scheduled-event queue, which delays and drops runs.
+# The schedule below is only a backstop for when the pinger is down.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: write
+
+# Serialize runs: every run commits state, so overlapping runs race on the push.
+concurrency:
+  group: internship-watcher
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      # Fetched through the authenticated contents API: anonymous raw requests
+      # are rate limited per shared runner IP. -f makes a 429 fail the step
+      # instead of writing an error body that parses as "no new listings".
+      # A failed fetch doesn't stop the run; watch.py skips a missing board.
+      - name: Fetch the Simplify boards
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          api=https://api.github.com/repos/SimplifyJobs/Summer2027-Internships/contents
+          fetch() {
+            curl -sSfL --retry 5 --retry-delay 3 --retry-all-errors --max-time 40 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github.raw" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$api/$1?ref=dev" -o "$2"
+          }
+          fetch README.md current-main.md &
+          pid_main=$!
+          fetch README-Off-Season.md current-offseason.md &
+          pid_off=$!
+          ok=0
+          wait $pid_main || { echo "::warning::main board fetch failed"; rm -f current-main.md; ok=1; }
+          wait $pid_off  || { echo "::warning::off-season board fetch failed"; rm -f current-offseason.md; ok=1; }
+          # A truncated response can still be valid-ish text; require plausible size.
+          for f in current-main.md current-offseason.md; do
+            [ -f "$f" ] || continue
+            [ "$(wc -c < "$f")" -gt 50000 ] || { echo "::warning::$f too small, ignoring"; rm -f "$f"; ok=1; }
+          done
+          exit $ok
+
+      - name: Poll sources and send alerts
+        env:
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python3 .github/workflow-scripts/watch.py
+
+      # One process owns the state file, so one commit and one push.
+      - name: Commit updated state
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add snapshots/seen.json
+          git diff --staged --quiet && exit 0
+          git commit -m "Update watcher state"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push && exit 0
+            echo "push attempt $attempt failed; retrying"
+            git rebase --abort 2>/dev/null || true
+            sleep 5
+          done
+          echo "could not push after 3 attempts"; exit 1
