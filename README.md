@@ -11,9 +11,9 @@ Roles: software, data/ML, design/systems/hardware, product, plus quant dev, fint
 business analyst, solutions/support engineer. The title must say intern, co-op,
 student, fellow or apprentice.
 
-**Sponsorship:** postings that explicitly say they won't sponsor (or require US
-citizenship / a clearance) are dropped, including Simplify's 🛂 and 🇺🇸 flags. A
-posting that says nothing is kept. Canada-only roles skip this check.
+**Citizenship:** postings that require US citizenship, a security clearance or ITAR status
+(including Simplify's 🇺🇸 flag) are dropped. Everything else passes, including roles that say
+they don't sponsor visas. Canada-only roles skip this check.
 
 ## How it works
 
@@ -24,7 +24,7 @@ posting that says nothing is kept. Canada-only roles skip this check.
 3. **LinkedIn guest search**, best effort, at most once an hour.
 
 Each posting is classified into a pipeline (`pipelines.py`, `job_filters.py`), deduped
-against `snapshots/seen.json`, checked for sponsorship language, and emailed as one message
+against `snapshots/seen.json`, checked for citizenship requirements, and emailed as one message
 per pipeline with a `[Winter 27]` / `[Summer 27]` subject prefix. The first run sends one
 "initial list" email per pipeline (top 150, big names first) and records everything else
 as seen.
@@ -46,7 +46,7 @@ as seen.
 
 - `big_names.txt`: who counts as a big name (edit freely).
 - `ats_companies.json`: boards to poll. Add `{"ats": "greenhouse|lever|ashby", "slug": "...", "name": "..."}`.
-- `job_filters.py`: role keywords, title exclusions, region and sponsorship patterns.
+- `job_filters.py`: role keywords, title exclusions, region and citizenship patterns.
 - `pipelines.py`: pipeline definitions (seasons, regions, big-names-only).
 
 ## Setup

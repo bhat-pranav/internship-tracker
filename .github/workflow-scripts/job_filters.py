@@ -4,7 +4,7 @@ Target profile (Waterloo co-op, needs US work sponsorship):
 - software, data/ML, design/systems/hardware, product, and "opportunistic"
   tech roles (quant dev, fintech, business analyst, solutions/support eng);
 - the title must say intern / co-op / student / fellow / apprentice;
-- US, Canada or remote; a posting that explicitly refuses sponsorship is dropped.
+- US, Canada or remote; a posting that requires US citizenship is dropped.
 """
 
 import re
@@ -180,49 +180,23 @@ def term_years(text: str) -> set:
 
 # ---- sponsorship -----------------------------------------------------------
 
-NO_SPONSOR_RE = re.compile(
-    r"\b(?:not|n't|unable to|cannot|can ?not|won't|no)\s+(?:\w+\s+){0,6}?sponsor|"
-    r"\bwithout\s+(?:\w+\s+){0,5}sponsorship|"
-    r"\b(?:sponsorship|visa)\s+(?:is\s+|are\s+)?(?:not|un)\s*(?:available|offered|provided)|"
-    r"\bno\s+(?:\w+\s+){0,2}sponsorship|"
-    r"\bu\.?s\.?\s+citizen(?:ship)?\s+(?:is\s+)?(?:required|only)|"
-    r"\bmust\s+be\s+(?:an?\s+)?(?:u\.?s\.?|united states)\s+(?:citizen|person)|"
-    r"\bsecurity clearance\b|\bitar\b|\bexport[- ]control(?:led)?\b",
+# Only citizenship requirements block a posting. "No sponsorship" language is
+# deliberately NOT filtered: those roles still get through.
+CITIZEN_ONLY_RE = re.compile(
+    r"u\.?s\.?\s+citizen(?:ship)?\s+(?:is\s+|are\s+)?(?:required|only|needed)|"
+    r"must\s+be\s+(?:an?\s+)?(?:u\.?s\.?|united states)\s+(?:citizen|person)|"
+    r"(?:u\.?s\.?|united states)\s+citizens?\s+only|"
+    r"security clearance|itar|export[- ]control(?:led)?",
     re.I,
 )
-NO_SPONSOR_MARKERS = ("🛂", "🇺🇸")  # Simplify's "no sponsorship" / "US citizens only" flags
+CITIZEN_ONLY_MARKERS = ("🇺🇸",)  # Simplify's "requires US citizenship" flag
 
 
 def sponsorship_blocked(text: str) -> bool:
-    """True only on explicit evidence the employer won't sponsor. Silence passes."""
+    """True only when the posting requires US citizenship (or a clearance,
+    which implies it). Everything else, including "no sponsorship", passes."""
     if not text:
         return False
-    if any(mark in text for mark in NO_SPONSOR_MARKERS):
+    if any(mark in text for mark in CITIZEN_ONLY_MARKERS):
         return True
-    return bool(NO_SPONSOR_RE.search(text))
-
-
-# ---- freshness and deadlines ----------------------------------------------
-
-_MONTH = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}"
-DEADLINE_RE = re.compile(
-    r"(?:apply|applications?|submit\w*)\W+(?:\w+\W+){0,6}?(?:by|before|until|through|close[sd]?(?:\s+on)?)\W+(" + _MONTH + r")"
-    r"|(?:deadline|closing date|closes|close date)\W+(?:is\W+|on\W+|by\W+)?(" + _MONTH + r")",
-    re.I,
-)
-ROLLING_RE = re.compile(
-    r"rolling (?:basis|admission|review|application)|reviewed on a rolling|"
-    r"until (?:the )?(?:position|role) is filled|first[- ]come",
-    re.I,
-)
-
-
-def deadline_hint(text: str) -> str:
-    """"closes Oct 15", "rolling", or "" when the posting says nothing."""
-    if not text:
-        return ""
-    m = DEADLINE_RE.search(text)
-    if m:
-        d = (m.group(1) or m.group(2)).strip().rstrip(".")
-        return "closes " + " ".join(w.capitalize() for w in d.split())
-    return "rolling" if ROLLING_RE.search(text) else ""
+    return bool(CITIZEN_ONLY_RE.search(text))

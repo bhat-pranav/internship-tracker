@@ -94,8 +94,8 @@ def render_html(label: str, jobs: list, total: int, initial: bool) -> str:
         '<div style="max-width:640px;margin:0 auto;background:#fff;padding:24px;border-radius:8px;">'
         f'<h1 style="font-size:18px;margin:0 0 4px;color:#111;">{html.escape(label)}: {head}</h1>'
         '<p style="font-size:12px;color:#888;margin:0 0 8px;">⭐ = big name, ⭐⭐ = your tier 1. '
-        "Sponsorship is checked against the posting text; roles that say they won't "
-        "sponsor are dropped, silence is kept.</p>"
+        "Roles that require US citizenship (or a clearance) are dropped; everything else, "
+        "including no-sponsorship roles, is kept.</p>"
         f"{note}"
         '<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">'
         + "\n".join(rows)

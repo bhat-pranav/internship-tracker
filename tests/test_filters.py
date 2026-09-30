@@ -65,13 +65,13 @@ class Freshness(unittest.TestCase):
 
 class Sponsorship(unittest.TestCase):
     def test_blocked(self):
-        for s in ["We are unable to sponsor visas.", "This role does not offer visa sponsorship",
-                  "Must be authorized to work in the US without sponsorship",
-                  "U.S. citizenship is required", "Active security clearance", "🛂 something"]:
+        for s in ["U.S. citizenship is required", "Must be a US citizen", "US citizens only",
+                  "Active security clearance", "ITAR restricted", "🇺🇸 something"]:
             self.assertTrue(sponsorship_blocked(s), s)
 
     def test_ok(self):
-        for s in ["", "We sponsor visas for eligible candidates", "Great team, great perks"]:
+        for s in ["", "We sponsor visas for eligible candidates", "We are unable to sponsor visas.",
+                  "will not pursue visa sponsorship", "authorized to work without sponsorship", "🛂 something"]:
             self.assertFalse(sponsorship_blocked(s), s)
 
 
@@ -96,7 +96,7 @@ class Pipelines(unittest.TestCase):
         self.assertEqual(classify(job("Software Engineer Intern", "Tiny Startup", "Seattle, WA")), ["winter"])
 
     def test_sponsorship_flag(self):
-        self.assertEqual(classify(job("Software Engineer Intern", "Google", "Seattle, WA", flags="🛂")), [])
+        self.assertEqual(classify(job("Software Engineer Intern", "Google", "Seattle, WA", flags="🇺🇸")), [])
 
     def test_big_names(self):
         self.assertTrue(is_big_name("Amazon Web Services"))
