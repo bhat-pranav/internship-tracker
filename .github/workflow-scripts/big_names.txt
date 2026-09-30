@@ -6,6 +6,10 @@
 # ("google" matches "Google DeepMind", "amazon" matches "Amazon Web Services").
 # End a line with "=" to require an exact match (for short or ambiguous names).
 # Lines starting with # are comments. Edit freely.
+#
+# Prefix a line with "!" to make it TIER 1 (dream companies): still a big name,
+# but its alerts get a starred subject line and sit at the top of the email.
+# Example:  !google   or   !apple=   (tier 1, exact match only)
 
 # --- Big tech ---
 google

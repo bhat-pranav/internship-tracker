@@ -29,6 +29,19 @@ per pipeline with a `[Winter 27]` / `[Summer 27]` subject prefix. The first run 
 "initial list" email per pipeline (top 150, big names first) and records everything else
 as seen.
 
+## Extras
+
+- **Tracker page** (`docs/`, served by GitHub Pages): every alerted role, with a status
+  (New / Interested / Applied / OA / Interview / Offer / Rejected / Skip) and a notes box per role.
+  Filters for pipeline, tier and search; sort by newest, deadline or company. Statuses are saved in
+  the browser only; use Export/Import to move them between devices.
+- **Freshness and deadlines:** each alert shows how old the posting is and any "rolling" /
+  "closes <date>" text found in the posting.
+- **Tier 1:** prefix a line in `big_names.txt` with `!` to mark a dream company. Its alerts get a
+  ⭐⭐ subject line and sit at the top of the email.
+- **Canada:** extra Canadian company boards, plus city-level co-op searches on LinkedIn
+  (Toronto, Waterloo, Vancouver, Montreal).
+
 ## Tuning
 
 - `big_names.txt`: who counts as a big name (edit freely).
@@ -48,4 +61,5 @@ as seen.
 ```bash
 python -m unittest discover -s tests
 python .github/workflow-scripts/watch.py --dry-run   # prints what would be sent; no email, no state change
+python .github/workflow-scripts/watch.py --backfill-tracker   # rebuild docs/jobs.json from what is open now
 ```

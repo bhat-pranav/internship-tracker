@@ -2,6 +2,7 @@
 
 import html
 import os
+from datetime import date, datetime, timezone
 
 from notifier import send_email
 
@@ -15,29 +16,56 @@ def _logs_url() -> str:
 
 
 def _sort(jobs: list) -> list:
-    return sorted(jobs, key=lambda j: (not j.get("big"), j["company"].lower(), j["title"].lower()))
+    # Tier 1, then big names, then newest posting first.
+    def key(j):
+        posted = j.get("posted") or ""
+        return (not j.get("tier1"), not j.get("big"), _invert(posted), j["company"].lower(), j["title"].lower())
+    return sorted(jobs, key=key)
+
+
+def _invert(date: str) -> str:
+    """Sort key so newer ISO dates come first; undated postings go last."""
+    return "".join(chr(0x7E - ord(c)) for c in date) if date else "~"
+
+
+def age_label(posted: str) -> str:
+    if not posted:
+        return ""
+    try:
+        days = (datetime.now(timezone.utc).date() - date.fromisoformat(posted)).days
+    except ValueError:
+        return ""
+    if days <= 0:
+        return "posted today"
+    if days < 14:
+        return f"posted {days}d ago"
+    return f"posted {days // 7}w ago"
 
 
 def _tags(job: dict) -> str:
     tags = [job["source"]]
     if not job.get("term_stated"):
         tags.append("term not stated")
+    for extra in (age_label(job.get("posted", "")), job.get("deadline", "")):
+        if extra:
+            tags.append(extra)
     return " · ".join(tags)
 
 
 def subject(label: str, jobs: list, initial: bool) -> str:
+    star = "⭐⭐ " if any(j.get("tier1") for j in jobs) else ""
     if initial:
-        return f"[{label}] Initial list: {len(jobs)} open roles"
+        return f"{star}[{label}] Initial list: {len(jobs)} open roles"
     unique = list(dict.fromkeys(j["company"] for j in _sort(jobs)))
     preview = ", ".join(unique[:3])
     more = f" +{len(unique) - 3} more" if len(unique) > 3 else ""
-    return f"[{label}] {len(jobs)} new: {preview}{more}"
+    return f"{star}[{label}] {len(jobs)} new: {preview}{more}"
 
 
 def render_html(label: str, jobs: list, total: int, initial: bool) -> str:
     rows = []
     for j in jobs:
-        star = "⭐ " if j.get("big") else ""
+        star = "⭐⭐ " if j.get("tier1") else ("⭐ " if j.get("big") else "")
         rows.append(
             "<tr>"
             '<td style="padding:10px 0;border-bottom:1px solid #eee;vertical-align:top;">'
@@ -65,7 +93,7 @@ def render_html(label: str, jobs: list, total: int, initial: bool) -> str:
         'sans-serif;background:#f7f7f7;margin:0;padding:20px;">'
         '<div style="max-width:640px;margin:0 auto;background:#fff;padding:24px;border-radius:8px;">'
         f'<h1 style="font-size:18px;margin:0 0 4px;color:#111;">{html.escape(label)}: {head}</h1>'
-        '<p style="font-size:12px;color:#888;margin:0 0 8px;">⭐ = big-name company. '
+        '<p style="font-size:12px;color:#888;margin:0 0 8px;">⭐ = big name, ⭐⭐ = your tier 1. '
         "Sponsorship is checked against the posting text; roles that say they won't "
         "sponsor are dropped, silence is kept.</p>"
         f"{note}"
@@ -82,7 +110,7 @@ def render_html(label: str, jobs: list, total: int, initial: bool) -> str:
 def render_plain(label: str, jobs: list) -> str:
     lines = [f"[{label}] {len(jobs)} role(s)", ""]
     for j in jobs:
-        lines.append(f"{'* ' if j.get('big') else ''}{j['company']} - {j['title']}")
+        lines.append(f"{'** ' if j.get('tier1') else ('* ' if j.get('big') else '')}{j['company']} - {j['title']}")
         lines.append(f"    {j['location'] or '(location not listed)'}  [{_tags(j)}]")
         lines.append(f"    {j['url']}")
     return "\n".join(lines)

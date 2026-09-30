@@ -20,6 +20,11 @@
   "name": "Abridge"
  },
  {
+  "ats": "lever",
+  "slug": "achievers",
+  "name": "Achievers"
+ },
+ {
   "ats": "greenhouse",
   "slug": "ada18",
   "name": "Ada"
@@ -63,6 +68,11 @@
   "ats": "greenhouse",
   "slug": "alloy",
   "name": "Alloy"
+ },
+ {
+  "ats": "ashby",
+  "slug": "amplitude",
+  "name": "Amplitude"
  },
  {
   "ats": "greenhouse",
@@ -260,6 +270,11 @@
   "name": "Composio"
  },
  {
+  "ats": "ashby",
+  "slug": "confluent",
+  "name": "Confluent"
+ },
+ {
   "ats": "greenhouse",
   "slug": "consensys",
   "name": "Consensys"
@@ -435,6 +450,11 @@
   "name": "Flexport"
  },
  {
+  "ats": "ashby",
+  "slug": "float",
+  "name": "Float"
+ },
+ {
   "ats": "greenhouse",
   "slug": "gemini",
   "name": "Gemini"
@@ -495,6 +515,11 @@
   "name": "Hootsuite"
  },
  {
+  "ats": "ashby",
+  "slug": "hopper",
+  "name": "Hopper"
+ },
+ {
   "ats": "greenhouse",
   "slug": "huntress",
   "name": "Huntress"
@@ -535,14 +560,29 @@
   "name": "Jane Street"
  },
  {
+  "ats": "ashby",
+  "slug": "jobber",
+  "name": "Jobber"
+ },
+ {
   "ats": "lever",
   "slug": "kabam",
   "name": "Kabam"
  },
  {
+  "ats": "lever",
+  "slug": "kepler",
+  "name": "Kepler Communications"
+ },
+ {
   "ats": "greenhouse",
   "slug": "klaviyo",
   "name": "Klaviyo"
+ },
+ {
+  "ats": "ashby",
+  "slug": "koho",
+  "name": "KOHO"
  },
  {
   "ats": "ashby",
@@ -583,6 +623,11 @@
   "ats": "greenhouse",
   "slug": "liftoff",
   "name": "Liftoff"
+ },
+ {
+  "ats": "ashby",
+  "slug": "lightspeedhq",
+  "name": "Lightspeed"
  },
  {
   "ats": "ashby",
@@ -650,6 +695,11 @@
   "name": "Mintlify"
  },
  {
+  "ats": "ashby",
+  "slug": "miovision",
+  "name": "Miovision"
+ },
+ {
   "ats": "greenhouse",
   "slug": "mixpanel",
   "name": "Mixpanel"
@@ -693,6 +743,11 @@
   "ats": "greenhouse",
   "slug": "mozilla",
   "name": "Mozilla"
+ },
+ {
+  "ats": "ashby",
+  "slug": "neofinancial",
+  "name": "Neo Financial"
  },
  {
   "ats": "greenhouse",
@@ -810,6 +865,11 @@
   "name": "Point72"
  },
  {
+  "ats": "lever",
+  "slug": "pointclickcare",
+  "name": "PointClickCare"
+ },
+ {
   "ats": "ashby",
   "slug": "poolside",
   "name": "Poolside"
@@ -823,6 +883,11 @@
   "ats": "greenhouse",
   "slug": "prisma",
   "name": "Prisma"
+ },
+ {
+  "ats": "ashby",
+  "slug": "procurify",
+  "name": "Procurify"
  },
  {
   "ats": "greenhouse",
@@ -890,6 +955,11 @@
   "name": "Ripple"
  },
  {
+  "ats": "greenhouse",
+  "slug": "ritual",
+  "name": "Ritual"
+ },
+ {
   "ats": "ashby",
   "slug": "rivianvw.tech",
   "name": "Rivian & VW Group Tech"
@@ -923,6 +993,11 @@
   "ats": "greenhouse",
   "slug": "samsara",
   "name": "Samsara"
+ },
+ {
+  "ats": "ashby",
+  "slug": "sanctuary",
+  "name": "Sanctuary AI"
  },
  {
   "ats": "ashby",
@@ -1070,6 +1145,11 @@
   "name": "Tripadvisor"
  },
  {
+  "ats": "ashby",
+  "slug": "trulioo",
+  "name": "Trulioo"
+ },
+ {
   "ats": "greenhouse",
   "slug": "tubitv",
   "name": "Tubi"
@@ -1100,6 +1180,11 @@
   "name": "Vapi"
  },
  {
+  "ats": "lever",
+  "slug": "veeva",
+  "name": "Veeva"
+ },
+ {
   "ats": "greenhouse",
   "slug": "vercel",
   "name": "Vercel"
@@ -1123,6 +1208,11 @@
   "ats": "ashby",
   "slug": "warp",
   "name": "Warp"
+ },
+ {
+  "ats": "lever",
+  "slug": "waveapps",
+  "name": "Wave"
  },
  {
   "ats": "greenhouse",

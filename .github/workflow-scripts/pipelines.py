@@ -58,28 +58,42 @@ def normalize_company(name: str) -> str:
 
 
 def _load_big_names() -> tuple:
-    prefix, exact = set(), set()
+    """Return (prefix, exact) dicts of normalized name -> is_tier1."""
+    prefix, exact = {}, {}
     for line in BIG_NAMES_PATH.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
+        tier1 = line.startswith("!")
+        line = line.lstrip("!").strip()
         if line.endswith("="):
-            exact.add(normalize_company(line[:-1]))
+            exact[normalize_company(line[:-1])] = tier1
         else:
-            prefix.add(normalize_company(line))
+            prefix[normalize_company(line)] = tier1
     return prefix, exact
 
 
 _PREFIX, _EXACT = _load_big_names()
 
 
-def is_big_name(company: str) -> bool:
+def company_tier(company: str) -> int:
+    """1 = tier 1 (dream company), 2 = big name, 0 = anything else."""
     n = normalize_company(company)
     if not n:
-        return False
-    if n in _EXACT or n in _PREFIX:
-        return True
-    return any(n.startswith(p + " ") for p in _PREFIX)
+        return 0
+    hits = []
+    if n in _EXACT:
+        hits.append(_EXACT[n])
+    if n in _PREFIX:
+        hits.append(_PREFIX[n])
+    hits.extend(t for p, t in _PREFIX.items() if n.startswith(p + " "))
+    if not hits:
+        return 0
+    return 1 if any(hits) else 2
+
+
+def is_big_name(company: str) -> bool:
+    return company_tier(company) > 0
 
 
 # ---- classification --------------------------------------------------------
@@ -117,7 +131,8 @@ def classify(job: dict) -> list:
         return []
 
     term_text = job.get("terms") or title
-    big = is_big_name(job["company"])
+    tier = company_tier(job["company"])
+    big = tier > 0
     out, stated_any = [], False
     for p in PIPELINES.values():
         if regs and not (regs & p.allowed_regions):
@@ -131,6 +146,7 @@ def classify(job: dict) -> list:
         stated_any = stated_any or stated
     job["term_stated"] = stated_any
     job["big"] = big
+    job["tier1"] = tier == 1
     job["regions"] = sorted(regs)
     return out
 

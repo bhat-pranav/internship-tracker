@@ -8,6 +8,7 @@ summer list; the off-season board has a Terms column ("Winter 2027, Spring 2027"
 import html
 import os
 import re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 TABLE_RE = re.compile(r"<table>(.*?)</table>", re.DOTALL)
@@ -33,6 +34,18 @@ def strip_html(fragment: str) -> str:
     return WHITESPACE_RE.sub(" ", fragment).strip()
 
 
+AGE_RE = re.compile(r"(\d+)\s*(d|w|mo|y)", re.I)
+
+
+def _age_to_date(age: str) -> str:
+    """"0d" / "3w" / "2mo" -> an approximate posted date."""
+    m = AGE_RE.search(age)
+    if not m:
+        return ""
+    days = int(m.group(1)) * {"d": 1, "w": 7, "mo": 30, "y": 365}[m.group(2).lower()]
+    return (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
+
+
 def _row_id(block: str, apply_url: str, company: str, role: str, location: str) -> str:
     # The simplify.jobs/p/<uuid> link survives edits to the row's text.
     m = POSTING_RE.search(block)
@@ -51,6 +64,7 @@ def parse_board(path: str, source: str, default_terms) -> list:
     for table in TABLE_RE.findall(text):
         headers = [strip_html(h).lower() for h in TH_RE.findall(table)]
         terms_idx = headers.index("terms") if "terms" in headers else None
+        age_idx = headers.index("age") if "age" in headers else None
         last_company = None
         for block in TR_RE.findall(table):
             tds = TD_RE.findall(block)
@@ -82,6 +96,7 @@ def parse_board(path: str, source: str, default_terms) -> list:
                     "title": re.sub(r"[🎓🛂🇺🇸]", "", role).strip(),
                     "location": location,
                     "url": apply_url,
+                    "posted": _age_to_date(strip_html(tds[age_idx])) if age_idx is not None and age_idx < len(tds) else "",
                     "terms": terms,
                     "flags": f"{first} {role}",  # 🛂 / 🇺🇸 sponsorship markers
                     "source": source,

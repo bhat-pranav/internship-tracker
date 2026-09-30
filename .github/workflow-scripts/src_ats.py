@@ -9,6 +9,7 @@ import re
 import sys
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -28,6 +29,12 @@ def fetch_json(url: str):
     raise last_err
 
 
+def _ms_to_date(ms) -> str:
+    if not ms:
+        return ""
+    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+
+
 def board_jobs(company: dict) -> list:
     """Return [{id, title, location, url, ...}] for one company's board."""
     ats, slug = company["ats"], company["slug"]
@@ -39,6 +46,7 @@ def board_jobs(company: dict) -> list:
                 "title": j["title"],
                 "location": (j.get("location") or {}).get("name", ""),
                 "url": j.get("absolute_url", ""),
+                "posted": (j.get("first_published") or j.get("updated_at") or "")[:10],
                 "detail_url": f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs/{j['id']}",
             }
             for j in data.get("jobs", [])
@@ -51,6 +59,7 @@ def board_jobs(company: dict) -> list:
                 "title": j.get("text", ""),
                 "location": (j.get("categories") or {}).get("location") or "",
                 "url": j.get("hostedUrl", ""),
+                "posted": _ms_to_date(j.get("createdAt")),
                 "description": f"{j.get('descriptionPlain', '')} {j.get('additionalPlain', '')}",
             }
             for j in data
@@ -70,6 +79,7 @@ def board_jobs(company: dict) -> list:
                     "title": j.get("title", ""),
                     "location": " / ".join(x for x in locs if x),
                     "url": j.get("jobUrl") or j.get("applyUrl", ""),
+                    "posted": (j.get("publishedAt") or "")[:10],
                     "description": j.get("descriptionPlain", ""),
                 }
             )

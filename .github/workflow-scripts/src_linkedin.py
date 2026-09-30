@@ -47,6 +47,21 @@ QUERIES = [
 ]
 LOCATIONS = ["United States", "Canada"]
 
+# Co-op is the Canadian term, and city-level searches surface roles the
+# country-wide search buries. Kept small: LinkedIn rate limits bursts.
+CANADA_QUERIES = [
+    "Software Developer Co-op",
+    "Software Engineer Co-op",
+    "Data Co-op",
+    "Product Co-op",
+]
+CANADA_CITIES = [
+    "Toronto, Ontario, Canada",
+    "Waterloo, Ontario, Canada",
+    "Vancouver, British Columbia, Canada",
+    "Montreal, Quebec, Canada",
+]
+
 
 def clean_text(raw: str) -> str:
     return WHITESPACE_RE.sub(" ", html.unescape(TAG_RE.sub("", raw))).strip()
@@ -74,6 +89,7 @@ def _cls(tag: str, cls: str, extra: str = "") -> re.Pattern:
 TITLE_RE = _cls("h3", "base-search-card__title")
 COMPANY_RE = _cls("h4", "base-search-card__subtitle")
 LOC_RE = _cls("span", "job-search-card__location")
+TIME_RE = re.compile(r"<time[^>]*datetime=\"(\d{4}-\d{2}-\d{2})\"")
 LINK_RE = re.compile(r"<a[^>]*class=\"[^\"]*base-card__full-link[^\"]*\"[^>]*href=\"([^\"]+)\"", re.DOTALL)
 ID_RE = re.compile(r"-(\d{8,12})(?:\Z|/|\?)")
 
@@ -102,6 +118,7 @@ def search(query: str, location: str) -> list:
                 "title": clean_text(m_title.group(1)),
                 "location": clean_text(m_loc.group(1)) if m_loc else "",
                 "url": link,
+                "posted": (TIME_RE.search(card).group(1) if TIME_RE.search(card) else ""),
                 "linkedin_id": m_id.group(1) if m_id else None,
                 "source": "LinkedIn",
             }
@@ -111,6 +128,7 @@ def search(query: str, location: str) -> list:
 
 def collect() -> list:
     tasks = [(q, loc) for q in QUERIES for loc in LOCATIONS]
+    tasks += [(q, city) for q in CANADA_QUERIES for city in CANADA_CITIES]
     found, failures = {}, 0
     with ThreadPoolExecutor(max_workers=2) as pool:
         futures = {pool.submit(search, q, loc): (q, loc) for q, loc in tasks}

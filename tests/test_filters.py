@@ -22,7 +22,8 @@ class Titles(unittest.TestCase):
 
     def test_rejected(self):
         for t in ["Software Engineer", "Senior Software Engineer Intern", "Marketing Intern",
-                  "PhD Software Engineer Intern", "Full Stack Developer", "Legal Intern"]:
+                  "PhD Software Engineer Intern", "Full Stack Developer", "Legal Intern",
+                  "Contract Student Worker - Data Analyst (Part-time)"]:
             self.assertFalse(wanted_title(t), t)
 
 
@@ -47,6 +48,19 @@ class Terms(unittest.TestCase):
         self.assertIn(("summer", 2027), term_hints("2027 Summer Intern"))
         self.assertIn(("winter", 2027), term_hints("Co-op (January 2027 - April 2027)"))
         self.assertEqual(term_hints("You may apply. May be remote"), set())
+
+
+class Freshness(unittest.TestCase):
+    def test_deadline_hint(self):
+        from job_filters import deadline_hint
+        self.assertEqual(deadline_hint("Applications close on October 15"), "closes October 15")
+        self.assertEqual(deadline_hint("We review on a rolling basis"), "rolling")
+        self.assertEqual(deadline_hint("Nothing here"), "")
+
+    def test_tier(self):
+        from pipelines import company_tier
+        self.assertEqual(company_tier("Amazon"), 2)
+        self.assertEqual(company_tier("Tiny Startup"), 0)
 
 
 class Sponsorship(unittest.TestCase):

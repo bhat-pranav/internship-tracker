@@ -18,7 +18,8 @@ INTERN_RE = re.compile(
 # Titles that are not a fit even when they say "intern".
 TITLE_EXCLUDE_RE = re.compile(
     r"\bsenior\b|\bsr\.?\b|\bstaff\b|\bprincipal\b|\bdirector\b|\bvp\b|\bhead of\b|"
-    r"\bvice president\b|\bph\.?d\.?\b|\bpostdoc|\bmba\b|\bmaster'?s\b|\bhigh school\b",
+    r"\bvice president\b|\bph\.?d\.?\b|\bpostdoc|\bmba\b|\bmaster'?s\b|\bhigh school\b|"
+    r"\bcontract\b|\bpart[- ]time\b|\btemporary\b|\bstudent worker\b",
     re.I,
 )
 
@@ -199,3 +200,29 @@ def sponsorship_blocked(text: str) -> bool:
     if any(mark in text for mark in NO_SPONSOR_MARKERS):
         return True
     return bool(NO_SPONSOR_RE.search(text))
+
+
+# ---- freshness and deadlines ----------------------------------------------
+
+_MONTH = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}"
+DEADLINE_RE = re.compile(
+    r"(?:apply|applications?|submit\w*)\W+(?:\w+\W+){0,6}?(?:by|before|until|through|close[sd]?(?:\s+on)?)\W+(" + _MONTH + r")"
+    r"|(?:deadline|closing date|closes|close date)\W+(?:is\W+|on\W+|by\W+)?(" + _MONTH + r")",
+    re.I,
+)
+ROLLING_RE = re.compile(
+    r"rolling (?:basis|admission|review|application)|reviewed on a rolling|"
+    r"until (?:the )?(?:position|role) is filled|first[- ]come",
+    re.I,
+)
+
+
+def deadline_hint(text: str) -> str:
+    """"closes Oct 15", "rolling", or "" when the posting says nothing."""
+    if not text:
+        return ""
+    m = DEADLINE_RE.search(text)
+    if m:
+        d = (m.group(1) or m.group(2)).strip().rstrip(".")
+        return "closes " + " ".join(w.capitalize() for w in d.split())
+    return "rolling" if ROLLING_RE.search(text) else ""

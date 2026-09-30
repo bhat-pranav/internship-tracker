@@ -17,6 +17,8 @@ import alerts
 import src_ats
 import src_linkedin
 import src_simplify
+import tracker
+from job_filters import deadline_hint
 from pipelines import PIPELINES, classify, sponsorship_ok
 
 SEEN_PATH = Path("snapshots/seen.json")
@@ -83,6 +85,7 @@ def description_for(job: dict) -> str:
 
 def main() -> int:
     dry = "--dry-run" in sys.argv
+    backfill = "--backfill-tracker" in sys.argv
     seen = load_seen()
     first_run = seen is None
     seen = seen or set()
@@ -101,6 +104,15 @@ def main() -> int:
         job["did"] = did
         matched.append(job)
 
+    if backfill:
+        # One-off: record every currently open match in the tracker without emailing.
+        for job in matched:
+            job.setdefault("deadline", "")
+        eligible = [j for j in matched if sponsorship_ok(j, j.get("description", ""))]
+        tracker.save(tracker.update(tracker.load(), matched, eligible))
+        print(f"Tracker backfilled with {len(eligible)} roles")
+        return 0
+
     new = [j for j in matched if j["id"] not in seen and j["did"] not in seen]
 
     # Sponsorship: only new postings, and only from text we already have on the
@@ -111,6 +123,7 @@ def main() -> int:
             "" if first_run else description_for(job)
         )
         if sponsorship_ok(job, text):
+            job["deadline"] = deadline_hint(text)
             kept.append(job)
     print(f"Sources failed: {failed or 'none'} | raw={len(raw)} matched={len(matched)} "
           f"new={len(new)} after sponsorship={len(kept)} first_run={first_run}")
@@ -129,6 +142,8 @@ def main() -> int:
             send_failed.update(j["id"] for j in batch)
 
     if not dry:
+        sent = [j for j in kept if j["id"] not in send_failed]
+        tracker.save(tracker.update(tracker.load(), matched, sent))
         for job in matched:
             if job["id"] in send_failed:
                 continue  # retry next run instead of losing the alert
