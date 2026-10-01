@@ -3,6 +3,7 @@ and email what's new. One process owns snapshots/seen.json.
 
     python watch.py                 # normal run
     python watch.py --dry-run       # print what would be sent, touch nothing
+    (new roles are emailed in batches, one digest per pipeline every 2 hours)
     LINKEDIN=always|never|auto      # auto = only in the first 15 min of the hour
 """
 
@@ -14,6 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import alerts
+import batching
 import src_ats
 import src_linkedin
 import src_simplify
@@ -128,9 +130,21 @@ def main() -> int:
     print(f"Sources failed: {failed or 'none'} | raw={len(raw)} matched={len(matched)} "
           f"new={len(new)} after sponsorship={len(kept)} first_run={first_run}")
 
-    send_failed = set()
+    # The very first run emails the full open list at once. After that, new roles
+    # queue up and go out as one digest per pipeline every batching.BATCH_MINUTES.
+    queue = batching.load()
+    if first_run:
+        outgoing = kept
+    else:
+        batching.enqueue(queue, kept)
+        outgoing = queue["jobs"] if batching.is_due(queue) else []
+        if not queue["last_sent"]:
+            queue["last_sent"] = batching.now().isoformat()
+        print(f"Queued: {len(queue['jobs'])} waiting, due={bool(outgoing)}")
+
+    send_failed = False
     for key, pipeline in PIPELINES.items():
-        batch = [j for j in kept if key in j["pipelines"]]
+        batch = [j for j in outgoing if key in j["pipelines"]]
         if not batch:
             continue
         if dry:
@@ -138,21 +152,27 @@ def main() -> int:
             for j in alerts._sort(batch)[:20]:
                 print(f"   {'*' if j['big'] else ' '} {j['company']} | {j['title']} | {j['location']}")
             continue
-        if not alerts.send_pipeline(pipeline.label, batch, initial=first_run):
-            send_failed.update(j["id"] for j in batch)
+        if alerts.send_pipeline(pipeline.label, batch, initial=first_run):
+            if not first_run:
+                batching.mark_sent(queue, key)
+        else:
+            send_failed = True
+    if outgoing and not send_failed and not first_run:
+        queue["last_sent"] = batching.now().isoformat()
 
     if not dry:
-        sent = [j for j in kept if j["id"] not in send_failed]
-        tracker.save(tracker.update(tracker.load(), matched, sent))
+        # Roles are tracked and marked seen when found; the email may come later.
+        tracker.save(tracker.update(tracker.load(), matched, kept))
         for job in matched:
-            if job["id"] in send_failed:
-                continue  # retry next run instead of losing the alert
             seen.add(job["id"])
             seen.add(job["did"])
         save_seen(seen)
+        if first_run and not send_failed:
+            queue["last_sent"] = batching.now().isoformat()
+        batching.save(queue)
 
     if send_failed:
-        print("::error::email failed to send; will retry next run", file=sys.stderr)
+        print("::error::email failed to send; roles stay queued for the next run", file=sys.stderr)
     return 1 if (send_failed or len(failed) == len(SOURCES)) else 0
 
 

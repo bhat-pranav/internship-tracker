@@ -63,6 +63,24 @@ class Freshness(unittest.TestCase):
         self.assertEqual(company_tier("Tiny Startup"), 0)
 
 
+class Batching(unittest.TestCase):
+    def test_due(self):
+        from datetime import datetime, timedelta, timezone
+        import batching
+        t0 = datetime(2026, 10, 1, 12, 0, tzinfo=timezone.utc)
+        state = {"last_sent": t0.isoformat(), "jobs": [{"pipelines": ["winter"]}]}
+        self.assertFalse(batching.is_due(state, t0 + timedelta(minutes=60)))
+        self.assertTrue(batching.is_due(state, t0 + timedelta(minutes=116)))
+        self.assertFalse(batching.is_due({"last_sent": t0.isoformat(), "jobs": []}, t0 + timedelta(hours=5)))
+        self.assertFalse(batching.is_due({"last_sent": None, "jobs": [{}]}, t0))
+
+    def test_mark_sent_keeps_other_pipeline(self):
+        import batching
+        state = {"last_sent": None, "jobs": [{"pipelines": ["winter", "summer"]}, {"pipelines": ["winter"]}]}
+        batching.mark_sent(state, "winter")
+        self.assertEqual(state["jobs"], [{"pipelines": ["summer"]}])
+
+
 class Sponsorship(unittest.TestCase):
     def test_blocked(self):
         for s in ["U.S. citizenship is required", "Must be a US citizen", "US citizens only",

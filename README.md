@@ -25,7 +25,9 @@ they don't sponsor visas. Canada-only roles skip this check.
 
 Each posting is classified into a pipeline (`pipelines.py`, `job_filters.py`), deduped
 against `snapshots/seen.json`, checked for citizenship requirements, and emailed as one message
-per pipeline with a `[Winter 27]` / `[Summer 27]` subject prefix. The first run sends one
+per pipeline with a `[Winter 27]` / `[Summer 27]` subject prefix. New roles are collected and sent
+as one digest per pipeline every 2 hours (`batching.py`, `BATCH_MINUTES`); they appear on the tracker page
+as soon as they're found. The first run sends one
 "initial list" email per pipeline (top 150, big names first) and records everything else
 as seen.
 
